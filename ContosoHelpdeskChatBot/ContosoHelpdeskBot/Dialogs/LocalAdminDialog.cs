@@ -8,11 +8,8 @@ using System.Threading;
 
 namespace ContosoHelpdeskChatBot.Dialogs
 {
-    [Serializable]
     public class LocalAdminDialog : ComponentDialog
     {
-        private LocalAdmin admin = new LocalAdmin();
-
         public LocalAdminDialog()
         : base(nameof(LocalAdminDialog))
         {
@@ -22,20 +19,33 @@ namespace ContosoHelpdeskChatBot.Dialogs
         public override async Task<DialogTurnResult> BeginDialogAsync(DialogContext outerDc, object options = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             var dialog = FindDialog(nameof(LocalAdminPrompt));
-            return await outerDc.BeginDialogAsync(nameof(LocalAdminPrompt));            
+            return await dialog.BeginDialogAsync(outerDc);        
         }
 
-        public override Task<DialogTurnResult> ResumeDialogAsync(DialogContext outerDc, DialogReason reason, object result = null, CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<DialogTurnResult> ContinueDialogAsync(DialogContext outerDc, CancellationToken cancellationToken = default(CancellationToken))
         {
-            using (var db = new ContosoHelpdeskContext())
-            {
-                db.LocalAdmins.Add(admin);
-                db.SaveChanges();
-            }
+            var dialog = FindDialog(nameof(LocalAdminPrompt));
+            var dialogResult = await dialog.ContinueDialogAsync(outerDc, cancellationToken).ConfigureAwait(false);
 
-            return Task.FromResult(new DialogTurnResult(DialogTurnStatus.Complete));
+            if(dialogResult.Status == DialogTurnStatus.Complete)
+            {
+                var result = dialogResult.Result as LocalAdminPrompt;
+                LocalAdmin admin = new LocalAdmin()
+                {
+                    AdminDuration = result.AdminDuration,
+                    MachineName = result.MachineName
+                };
+
+                using (var db = new ContosoHelpdeskContext())
+                {
+                    db.LocalAdmins.Add(admin);
+                    db.SaveChanges();
+                }
+            }
+            return dialogResult;
         }
-        
+
+
         private IForm<LocalAdminPrompt> BuildLocalAdminForm()
         {
             //here's an example of how validation can be used in form builder
@@ -44,20 +54,17 @@ namespace ContosoHelpdeskChatBot.Dialogs
                 validate: async (state, value) =>
                 {
                     var result = new ValidateResult { IsValid = true, Value = value };
-                    //add validation here
-
-                    this.admin.MachineName = (string)value;
+                    //add validation here                    
                     return result;
                 })
                 .Field(nameof(LocalAdminPrompt.AdminDuration),
                 validate: async (state, value) =>
                 {
                     var result = new ValidateResult { IsValid = true, Value = value };
-                    //add validation here
-
-                    this.admin.AdminDuration = Convert.ToInt32((long)value) as int?;
+                    //add validation here                    
                     return result;
                 })
+                .Message($"Thank you for using the Helpdesk Bot. Your ticket number is {new Random().Next(0, 20000)}.")
                 .Build();
         }
     }
