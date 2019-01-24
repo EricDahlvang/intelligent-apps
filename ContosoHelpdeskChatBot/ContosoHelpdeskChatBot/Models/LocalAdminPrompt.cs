@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
-using Microsoft.Bot.Builder.FormFlow;
+using Bot.Builder.Community.Dialogs.FormFlow;
 
 namespace ContosoHelpdeskChatBot.Models
 {

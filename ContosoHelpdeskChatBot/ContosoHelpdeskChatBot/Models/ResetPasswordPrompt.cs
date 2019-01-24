@@ -6,7 +6,7 @@ using System.Web;
 namespace ContosoHelpdeskChatBot.Models
 {
     using System;
-    using Microsoft.Bot.Builder.FormFlow;
+    using Bot.Builder.Community.Dialogs.FormFlow;
 
     [Serializable]
     public class ResetPasswordPrompt

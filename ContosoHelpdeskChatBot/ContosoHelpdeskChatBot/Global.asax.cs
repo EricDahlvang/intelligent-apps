@@ -1,7 +1,6 @@
 ﻿using Autofac;
 using Microsoft.Bot.Builder.Dialogs;
-using Microsoft.Bot.Builder.Dialogs.Internals;
-using Microsoft.Bot.Builder.Internals.Fibers;
+using Autofac.Integration.WebApi;
 using Microsoft.Bot.Connector;
 using Microsoft.Bot.Builder.Azure;
 using System;
@@ -11,6 +10,10 @@ using System.Linq;
 using System.Web;
 using System.Web.Http;
 using System.Web.Routing;
+using System.Reflection;
+using System.Configuration;
+using Microsoft.Bot.Connector.Authentication;
+using Microsoft.Bot.Builder;
 
 namespace ContosoHelpdeskChatBot
 {
@@ -20,8 +23,7 @@ namespace ContosoHelpdeskChatBot
         {
             GlobalConfiguration.Configure(WebApiConfig.Register);
 
-            BotConfig.UpdateConversationContainer();
-            this.RegisterBotModules();
+            GlobalConfiguration.Configure(BotConfig.Register);
 
             log4net.Config.XmlConfigurator.Configure();
         }
@@ -30,37 +32,44 @@ namespace ContosoHelpdeskChatBot
         //example if bot service got restarted, existing conversation would just overwrite data to store
         public static class BotConfig
         {
-            public static void UpdateConversationContainer()
+
+            public static void Register(HttpConfiguration config)
             {
-                var store = new InMemoryDataStore();
+                BotAccessors accessors = null;
 
-                Conversation.UpdateContainer(
-                           builder =>
-                           {
-                               builder.Register(c => store)
-                                         .Keyed<IBotDataStore<BotData>>(AzureModule.Key_DataStore)
-                                         .AsSelf()
-                                         .SingleInstance();
+                var builder = new ContainerBuilder();
+                builder.RegisterApiControllers(Assembly.GetExecutingAssembly());
 
-                               builder.Register(c => new CachingBotDataStore(store,
-                                          CachingBotDataStoreConsistencyPolicy
-                                          .ETagBasedConsistency))
-                                          .As<IBotDataStore<BotData>>()
-                                          .AsSelf()
-                                          .InstancePerLifetimeScope();
+                var credentialProvider = new SimpleCredentialProvider(ConfigurationManager.AppSettings[MicrosoftAppCredentials.MicrosoftAppIdKey],
+                                                                    ConfigurationManager.AppSettings[MicrosoftAppCredentials.MicrosoftAppPasswordKey]);
+                builder.RegisterInstance(credentialProvider).As<ICredentialProvider>();
 
+                // The Memory Storage used here is for local bot debugging only. When the bot
+                // is restarted, everything stored in memory will be gone.
+                IStorage dataStore = new MemoryStorage();
 
-                           });
+                // Create Conversation State object.
+                // The Conversation State object is where we persist anything at the conversation-scope.
+                var conversationState = new ConversationState(dataStore);
+             //   var userState = new UserState(dataStore);
+             //   var privateConversationState = new PrivateConversationState(dataStore);
+
+                // Create the custom state accessor.
+                // State accessors enable other components to read and write individual properties of state.
+                accessors = new BotAccessors(conversationState)
+                {
+                //    UserData = userState.CreateProperty<BotDataBag>(BotAccessors.UserDataPropertyName),
+                    ConversationData = conversationState.CreateProperty<BotDataBag>(BotAccessors.ConversationDataPropertyName),
+               //     PrivateConversationData = privateConversationState.CreateProperty<BotDataBag>(BotAccessors.PrivateConversationDataPropertyName),
+                    DialogData = conversationState.CreateProperty<DialogState>(nameof(DialogState))
+                };
+
+                builder.RegisterInstance(accessors).As<BotAccessors>();
+                var container = builder.Build();
+
+                var resolver = new AutofacWebApiDependencyResolver(container);
+                config.DependencyResolver = resolver;
             }
-        }
-
-        private void RegisterBotModules()
-        {
-            Conversation.UpdateContainer(builder =>
-            {
-                builder.RegisterModule(new ReflectionSurrogateModule());
-                builder.RegisterModule<GlobalMessageHandlersBotModule>();
-            });
         }
     }
 }
