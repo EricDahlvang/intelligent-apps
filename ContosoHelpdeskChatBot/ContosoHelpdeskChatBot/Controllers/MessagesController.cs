@@ -34,12 +34,6 @@ namespace ContosoHelpdeskChatBot
             _dialogs.Add(new RootDialog(_conversationData));
         }
 
-        protected IAdapterIntegration CreateAdapter()
-        {
-            return new BotFrameworkAdapter(_credentialProvider)
-                    .Use(new AutoSaveStateMiddleware(_conversationState));
-        }
-
         /// <summary>
         /// POST: api/Messages
         /// Receive a message from a user and reply to it
@@ -66,6 +60,11 @@ namespace ContosoHelpdeskChatBot
 
         }
 
+        protected IAdapterIntegration CreateAdapter()
+        {
+            return new BotFrameworkAdapter(_credentialProvider)
+                    .Use(new AutoSaveStateMiddleware(_conversationState));
+        }
 
         protected async Task OnTurnAsync(ITurnContext turnContext, CancellationToken cancellationToken)
         {

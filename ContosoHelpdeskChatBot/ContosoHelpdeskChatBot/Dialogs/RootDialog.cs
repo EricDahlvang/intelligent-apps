@@ -10,6 +10,19 @@
     
     public class RootDialog : ComponentDialog
     {
+        private static log4net.ILog logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private const string InstallAppOption = "Install Application (install)";
+        private const string ResetPasswordOption = "Reset Password (password)";
+        private const string LocalAdminOption = "Request Local Admin (admin)";
+        private const string GreetMessage = "Welcome to **Contoso Helpdesk Chat Bot**.\n\nI am designed to use with mobile email app, make sure your replies do not contain signatures. \n\nFollowing is what I can help you with, just reply with word in parenthesis:";
+        private const string ErrorMessage = "Not a valid option";
+        private static List<Choice> HelpdeskOptions = new List<Choice>()
+        {
+            new Choice(InstallAppOption) { Synonyms = new List<string>(){ "install" } },
+            new Choice(ResetPasswordOption) { Synonyms = new List<string>(){ "password" } },
+            new Choice(LocalAdminOption)  { Synonyms = new List<string>(){ "admin" } }
+        };
+
         public RootDialog(IStatePropertyAccessor<BotDataBag> conversationData)
             :base(nameof(RootDialog))
         {
@@ -62,18 +75,5 @@
                            },
                            cancellationToken);
         }
-
-        private static log4net.ILog logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-        private const string InstallAppOption = "Install Application (install)";
-        private const string ResetPasswordOption = "Reset Password (password)";
-        private const string LocalAdminOption = "Request Local Admin (admin)";
-        private const string GreetMessage = "Welcome to **Contoso Helpdesk Chat Bot**.\n\nI am designed to use with mobile email app, make sure your replies do not contain signatures. \n\nFollowing is what I can help you with, just reply with word in parenthesis:";
-        private const string ErrorMessage = "Not a valid option";
-        private static List<Choice> HelpdeskOptions = new List<Choice>()
-        {
-            new Choice(InstallAppOption) { Synonyms = new List<string>(){ "1", "install" } },
-            new Choice(ResetPasswordOption) { Synonyms = new List<string>(){ "2", "password" } },
-            new Choice(LocalAdminOption)  { Synonyms = new List<string>(){ "3", "admin" } }
-        };
     }
 }
