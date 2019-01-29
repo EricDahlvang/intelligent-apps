@@ -15,13 +15,14 @@ namespace ContosoHelpdeskChatBot.Dialogs
         {
             AddDialog(FormDialog.FromForm(this.BuildLocalAdminForm, FormOptions.PromptInStart));
         }
+
         public override async Task<DialogTurnResult> BeginDialogAsync(DialogContext outerDc, object options = null, CancellationToken cancellationToken = default(CancellationToken))
         {
+            await outerDc.PostAsync("Great I will help you request local machine admin.");
             var dialog = FindDialog(nameof(LocalAdminPrompt));
             return await dialog.BeginDialogAsync(outerDc);
         }
-
-
+        
         public override async Task<DialogTurnResult> ContinueDialogAsync(DialogContext outerDc, CancellationToken cancellationToken = default(CancellationToken))
         {
             var dialog = FindDialog(nameof(LocalAdminPrompt));

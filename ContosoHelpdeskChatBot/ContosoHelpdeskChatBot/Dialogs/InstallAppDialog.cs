@@ -1,29 +1,28 @@
 ﻿namespace ContosoHelpdeskChatBot.Dialogs
 {
-    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    using System.Web;
     using Microsoft.Bot.Builder.Dialogs;
-    using Microsoft.Bot.Connector;
     using ContosoHelpdeskChatBot.Models;
     using System.Threading;
+    using Microsoft.Bot.Builder;
 
     public class InstallAppDialog : ComponentDialog
     {
-        BotAccessors _accessors;
-        public InstallAppDialog(BotAccessors accessors)
+        private readonly IStatePropertyAccessor<BotDataBag> _conversationData;
+        public InstallAppDialog(IStatePropertyAccessor<BotDataBag> conversationData)
         : base(nameof(InstallAppDialog))
         {
-            _accessors = accessors;
+            _conversationData = conversationData;
         }
+
         public override async Task<DialogTurnResult> BeginDialogAsync(DialogContext outerDc, object options = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             await outerDc.PostAsync("Ok let's get started. What is the name of the application? ");
             //set default state values
             outerDc.ActiveDialog.State["AppName"] = string.Empty;
-            var data = await _accessors.ConversationData.GetAsync(outerDc.Context, () => new BotDataBag());
+            var data = await _conversationData.GetAsync(outerDc.Context, () => new BotDataBag());
             data.Remove("AppList");
             return new DialogTurnResult(DialogTurnStatus.Waiting);
         }
@@ -38,7 +37,7 @@
                 //If appName is missing, the user is either choosing from an AppList, 
                 //or answering the question "What is the name of the application"
                 List<string> applist = null;
-                var data = await _accessors.ConversationData.GetAsync(outerDc.Context, () => new BotDataBag());
+                var data = await _conversationData.GetAsync(outerDc.Context, () => new BotDataBag());
                 data.TryGetValue("AppList", out applist);
 
                 if (applist == null)
@@ -92,7 +91,7 @@
                 await context.PostAsync($"I found {names.Count()} applications.<br/> {appnames}<br/> Please reply 1 - {names.Count()} to indicate your choice.");
 
                 //at a conversation scope, store state data in ConversationData
-                var data = await _accessors.ConversationData.GetAsync(context.Context, () => new BotDataBag());
+                var data = await _conversationData.GetAsync(context.Context, () => new BotDataBag());
                 data.SetValue("AppList", names);
             }
             else
@@ -112,7 +111,7 @@
             var isNum = int.TryParse(message.Text, out choice);
             List<string> applist;
 
-            var data = await _accessors.ConversationData.GetAsync(context.Context, () => new BotDataBag());
+            var data = await _conversationData.GetAsync(context.Context, () => new BotDataBag());
             data.TryGetValue("AppList", out applist);
 
             if (isNum && choice <= applist.Count && choice > 0)

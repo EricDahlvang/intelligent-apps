@@ -406,10 +406,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="App_Start\WebApiConfig.cs" />
-    <Compile Include="BotAccessors.cs" />
+    <Compile Include="BotDataBag.cs" />
     <Compile Include="ClassicExtensions.cs" />
     <Compile Include="Controllers\MessagesController.cs" />
-    <Compile Include="DataBagsMiddleware.cs" />
     <Compile Include="Dialogs\LocalAdminDialog.cs" />
     <Compile Include="Dialogs\ResetPasswordDialog.cs" />
     <Compile Include="Models\AppMsi.cs" />
@@ -419,13 +418,11 @@
     <Compile Include="Models\LocalAdminPrompt.cs" />
     <Compile Include="Models\Log.cs" />
     <Compile Include="Models\ResetPassword.cs" />
-    <Compile Include="Dialogs\CancelScorable.cs" />
     <Compile Include="Dialogs\InstallAppDialog.cs" />
     <Compile Include="Dialogs\RootDialog.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
-    <Compile Include="GlobalMessageHandlersBotModule.cs" />
     <Compile Include="Models\ResetPasswordPrompt.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

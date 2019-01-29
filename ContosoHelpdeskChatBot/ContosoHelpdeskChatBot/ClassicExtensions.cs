@@ -1,13 +1,10 @@
 ﻿using Microsoft.Bot.Builder.Dialogs;
 using Microsoft.Bot.Schema;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-using System.Web;
 
 namespace ContosoHelpdeskChatBot
 {
+    //Extension methods enabling similar syntax to Bot Builder V3
     public static class ClassicExtensions
     {
         public static async Task PostAsync(this DialogContext dc, string message)

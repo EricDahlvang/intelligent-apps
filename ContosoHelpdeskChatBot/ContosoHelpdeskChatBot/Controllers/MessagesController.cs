@@ -2,39 +2,42 @@
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Web.Http;
-using Microsoft.Bot.Builder.Dialogs;
-using Microsoft.Bot.Connector;
 using System;
-using Microsoft.Bot.Connector.Authentication;
+using System.Threading;
 using ContosoHelpdeskChatBot.Dialogs;
+using Bot.Builder.Community.Dialogs.FormFlow;
+using Microsoft.Bot.Builder.Dialogs;
+using Microsoft.Bot.Connector.Authentication;
 using Microsoft.Bot.Schema;
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Integration;
-using System.Threading;
-using Bot.Builder.Community.Dialogs.FormFlow;
 
 namespace ContosoHelpdeskChatBot
 {
     //[BotAuthentication]
     public class MessagesController : ApiController
     {
-        private readonly BotAccessors _accessors;
+        private readonly ConversationState _conversationState;
+        private readonly IStatePropertyAccessor<BotDataBag> _conversationData;
+        private readonly IStatePropertyAccessor<DialogState> _dialogData;
         private readonly ICredentialProvider _credentialProvider;
+
         private readonly DialogSet _dialogs;
 
-        public MessagesController(BotAccessors accessors, ICredentialProvider credentialProvider)
+        public MessagesController(ConversationState conversationState, ICredentialProvider credentialProvider, IStatePropertyAccessor<BotDataBag> conversationData, IStatePropertyAccessor<DialogState> dialogData)
         {
-            _accessors = accessors;
+            _conversationState = conversationState;
+            _conversationData = conversationData;
+            _dialogData = dialogData;
             _credentialProvider = credentialProvider;
-            _dialogs = new DialogSet(accessors.DialogData);
-            _dialogs.Add(new RootDialog(accessors));
+            _dialogs = new DialogSet(dialogData);
+            _dialogs.Add(new RootDialog(_conversationData));
         }
 
         protected IAdapterIntegration CreateAdapter()
         {
-            var adapter = new BotFrameworkAdapter(_credentialProvider, middleware: new DataBagsMiddleware(_accessors));
-            adapter.Use(new AutoSaveStateMiddleware(_accessors.BotStates));
-            return adapter;
+            return new BotFrameworkAdapter(_credentialProvider)
+                    .Use(new AutoSaveStateMiddleware(_conversationState));
         }
 
         /// <summary>
@@ -114,6 +117,6 @@ namespace ContosoHelpdeskChatBot
                 }
             }
         }
-      
+
     }
 }

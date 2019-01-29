@@ -7,23 +7,18 @@
     using Microsoft.Bot.Builder;
     using Microsoft.Bot.Builder.Dialogs;
     using Microsoft.Bot.Builder.Dialogs.Choices;
-    using Microsoft.Bot.Connector;
-
-    [Serializable]
+    
     public class RootDialog : ComponentDialog
     {
-        private readonly BotAccessors _botAccessors;
-        public RootDialog(BotAccessors accessors)
+        public RootDialog(IStatePropertyAccessor<BotDataBag> conversationData)
             :base(nameof(RootDialog))
         {
-            _botAccessors = accessors;
-
             AddDialog(new WaterfallDialog("choiceswaterfall", new WaterfallStep[]
                {
                     PromptForOptionsAsync,
                     ShowOptionDialog
                }));
-            AddDialog(new InstallAppDialog(_botAccessors));
+            AddDialog(new InstallAppDialog(conversationData));
             AddDialog(new LocalAdminDialog());
             AddDialog(new ResetPasswordDialog());
             AddDialog(new ChoicePrompt("options", ValidateChoiceAsync));
@@ -80,69 +75,5 @@
             new Choice(ResetPasswordOption) { Synonyms = new List<string>(){ "2", "password" } },
             new Choice(LocalAdminOption)  { Synonyms = new List<string>(){ "3", "admin" } }
         };
-
-        //public async Task StartAsync(DialogContext context)
-        //{
-        //    context.Wait(this.MessageReceivedAsync);
-        //}
-
-        //public virtual async Task MessageReceivedAsync(DialogContext context, IAwaitable<IMessageActivity> userReply)
-        //{
-        //    var message = await userReply;
-
-        //    this.ShowOptions(context);
-        //}
-
-        //private void ShowOptions(DialogContext context)
-        //{
-        //    PromptDialog.Choice(context, this.OnOptionSelected, HelpdeskOptions, GreetMessage, ErrorMessage, 3, PromptStyle.PerLine);
-        //}
-
-        //private async Task OnOptionSelected(DialogContext context, IAwaitable<string> userReply)
-        //{
-        //    try
-        //    {
-        //        string optionSelected = await userReply;
-
-        //        switch (optionSelected)
-        //        {
-        //            case InstallAppOption:
-        //                context.Call(new InstallAppDialog(), this.ResumeAfterOptionDialog);
-        //                break;
-        //            case ResetPasswordOption:
-        //                context.Call(new ResetPasswordDialog(), this.ResumeAfterOptionDialog);
-        //                break;
-        //            case LocalAdminOption:
-        //                context.Call(new LocalAdminDialog(), this.ResumeAfterOptionDialog);
-        //                break;
-        //        }
-        //    }
-        //    catch (TooManyAttemptsException ex)
-        //    {
-        //        await context.PostAsync($"Ooops! Too many attemps :(. But don't worry, I'm handling that exception and you can try again!");
-
-        //        context.Wait(this.MessageReceivedAsync);
-        //    }
-        //}
-
-    //    private async Task ResumeAfterOptionDialog(DialogContext context, IAwaitable<object> userReply)
-    //    {
-    //        try
-    //        {
-    //            var message = await userReply;
-
-    //            var ticketNumber = new Random().Next(0, 20000);
-    //            await context.PostAsync($"Thank you for using the Helpdesk Bot. Your ticket number is {ticketNumber}.");
-    //            context.Done(ticketNumber);
-    //        }
-    //        catch (Exception ex)
-    //        {
-    //            await context.PostAsync($"Failed with message: {ex.Message}");
-
-    //            // In general resume from task after calling a child dialog is a good place to handle exceptions
-    //            // try catch will capture exceptions from the bot framework awaitable object which is essentially "userReply"
-    //            logger.Error(ex);
-    //        }
-    //    }
     }
 }
